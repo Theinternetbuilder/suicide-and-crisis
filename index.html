@@ -1,100 +1,167 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>suicide and crisis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>By Your Side</title>
 
 <style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;
+}
+
 body{
-    background:linear-gradient(
-        45deg,
-        red,
-        yellow,
-        lime,
-        cyan,
-        blue,
-        magenta
-    );
-    background-size:400% 400%;
-    animation:bg 2s infinite;
-    font-family:Comic Sans MS,cursive;
+    background:#eef6f7;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.container{
+    width:95%;
+    max-width:800px;
+    height:90vh;
+    background:white;
+    border-radius:18px;
+    box-shadow:0 10px 35px rgba(0,0,0,.08);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+header{
+    padding:22px;
+    background:#d9f0ee;
     text-align:center;
-    color:white;
 }
 
-@keyframes bg{
-    0%{background-position:0% 50%;}
-    50%{background-position:100% 50%;}
-    100%{background-position:0% 50%;}
+header h1{
+    color:#355b63;
+    font-size:26px;
+    margin-bottom:6px;
 }
 
-h1{
-    font-size:70px;
-    animation:spin 1s linear infinite;
+header p{
+    color:#587178;
+    font-size:14px;
 }
 
-@keyframes spin{
-    from{transform:rotate(0deg);}
-    to{transform:rotate(360deg);}
+#chat{
+    flex:1;
+    overflow-y:auto;
+    padding:20px;
+    background:#f8fbfb;
+}
+
+.message{
+    max-width:80%;
+    padding:14px 16px;
+    margin-bottom:15px;
+    border-radius:18px;
+    line-height:1.5;
+    word-wrap:break-word;
+    white-space:pre-wrap;
+}
+
+.user{
+    margin-left:auto;
+    background:#cceeff;
+    color:#184d66;
+    border-bottom-right-radius:6px;
+}
+
+.ai{
+    margin-right:auto;
+    background:white;
+    color:#444;
+    border:1px solid #dde8e8;
+    border-bottom-left-radius:6px;
+}
+
+.typing{
+    color:#7d8b8b;
+    font-style:italic;
+}
+
+.input-area{
+    padding:18px;
+    background:white;
+    border-top:1px solid #e6e6e6;
 }
 
 textarea{
-    width:95%;
-    height:250px;
-    font-size:30px;
-    background:yellow;
-    color:red;
-    border:10px dashed lime;
+    width:100%;
+    height:70px;
+    resize:none;
+    padding:12px;
+    border-radius:12px;
+    border:1px solid #ccdede;
+    outline:none;
+    font-size:15px;
+}
+
+textarea:focus{
+    border-color:#86c9c5;
 }
 
 button{
-    font-size:40px;
-    padding:20px;
-    background:black;
-    color:hotpink;
-    border:10px solid yellow;
+    margin-top:10px;
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:12px;
+    background:#75bdb7;
+    color:white;
+    font-size:16px;
     cursor:pointer;
+    transition:.2s;
 }
 
-#output{
-    margin-top:20px;
-    font-size:28px;
-    white-space:pre-wrap;
-    word-break:break-word;
-    background:rgba(0,0,0,.5);
-    padding:20px;
+button:hover{
+    background:#62aca6;
 }
 </style>
 
 </head>
 <body>
 
-<h1>We are here by your side, Talk to us for free</h1>
+<div class="container">
 
-<p>
+<header>
+<h1>We are here by your side ❤️</h1>
+<p>You're welcome to talk. This conversation is private.</p>
+</header>
 
-</p>
+<div id="chat">
+    <div class="message ai">
+        Hello. I'm Sara. I'm here to listen. What would you like to talk about today?
+    </div>
+</div>
+
+<div class="input-area">
 
 <textarea
 id="prompt"
-placeholder="Ask anything. It's okay to talk to someone"
+placeholder="Ask anything. It's okay to talk to someone..."
 ></textarea>
 
-<br><br>
-
 <button onclick="chat()">
+Send
 </button>
 
-<div id="output">
-Typing...
+</div>
+
 </div>
 
 <script>
 
-const API_KEY = "PUT_API_KEY_HERE";
+const API_KEY="PUT_API_KEY_HERE";
 
-const SYSTEM_PROMPT = `Hello, Your name is Sara, a volunteer at suicide and crisis. 
+const SYSTEM_PROMPT=`Hello, Your name is Sara, a volunteer at suicide and crisis. 
   You must always use soft language, and never encourage self harm
 If someone experiences self harm, Don't redirect them to another person, YOU are the chosen one to talk to them
   So here are questions on the list, Ask them one by one
@@ -110,20 +177,61 @@ Question 3: "May I ask why you deciding to think about self-harm?"
 
 important!: If the user is in immediate danger, Encourage them to call 911, 112, 999
 
-also note: The chat is private
+also note: The chat is private, The conversation is
 `;
+
+const history=[];
+
+function addMessage(text,type){
+
+    const chat=document.getElementById("chat");
+
+    const div=document.createElement("div");
+    div.className="message "+type;
+    div.innerText=text;
+
+    chat.appendChild(div);
+
+    chat.scrollTop=chat.scrollHeight;
+
+}
 
 async function chat(){
 
-    const prompt =
-        document.getElementById("prompt").value;
+    const textarea=document.getElementById("prompt");
+    const prompt=textarea.value.trim();
 
-    document.getElementById("output").innerText =
-        "Waiting...";
+    if(!prompt) return;
+
+    addMessage(prompt,"user");
+
+    history.push({
+        role:"user",
+        content:prompt
+    });
+
+    textarea.value="";
+
+    const typing=document.createElement("div");
+    typing.className="message ai typing";
+    typing.id="typing";
+    typing.innerText="Sara is typing...";
+    document.getElementById("chat").appendChild(typing);
+
+    document.getElementById("chat").scrollTop=
+    document.getElementById("chat").scrollHeight;
 
     try{
 
-        const response = await fetch(
+        const conversation=history.map(m=>
+
+            `[${m.role.toUpperCase()}]
+${m.content}
+[/${m.role.toUpperCase()}]`
+
+        ).join("\n\n");
+
+        const response=await fetch(
             "https://segervolervix.space/api/chat",
             {
                 method:"POST",
@@ -132,43 +240,74 @@ async function chat(){
                     "Authorization":API_KEY
                 },
                 body:JSON.stringify({
+
                     user_message:
-                        "[SYSTEM]\\n" +
-                        SYSTEM_PROMPT +
-                        "\\n[/SYSTEM]\\n\\n" +
-                        "[USER]\\n" +
-                        prompt +
-                        "\\n[/USER]"
+`[SYSTEM]
+${SYSTEM_PROMPT}
+[/SYSTEM]
+
+${conversation}`
+
                 })
             }
         );
 
-        const data = await response.json();
+        const data=await response.json();
 
-        document.getElementById("output").innerText =
-            data.ai_message ||
-            JSON.stringify(data,null,2);
+        document.getElementById("typing").remove();
+
+        const reply=data.ai_message ||
+        JSON.stringify(data,null,2);
+
+        addMessage(reply,"ai");
+
+        history.push({
+            role:"assistant",
+            content:reply
+        });
 
     }catch(error){
 
-        document.getElementById("output").innerText =
-            "Error" +
-            error;
+        document.getElementById("typing").remove();
+
+        addMessage(
+            "Sorry, something went wrong.\n\n"+error,
+            "ai"
+        );
+
     }
+
 }
+
+document.getElementById("prompt").addEventListener("keydown",function(e){
+
+    if(e.key==="Enter" && !e.shiftKey){
+
+        e.preventDefault();
+
+        chat();
+
+    }
+
+});
+
+const titles=[
+"By Your Side",
+"You're Not Alone",
+"Take Your Time",
+"Always Listening"
+];
 
 setInterval(()=>{
 
-    document.title =
-        [
-            "AI",
-            
-            "By your side"
-        ][Math.floor(Math.random()*5)];
+document.title=titles[
+Math.floor(Math.random()*titles.length)
+];
 
-},250);
+},2500);
 
 </script>
 
 </body>
 </html>
+
